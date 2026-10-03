@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spotter fuel route</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>body{margin:0;font-family:system-ui}header{padding:12px 20px;background:#172b4d;color:white}#map{height:calc(100vh - 100px);min-height:400px}.stop{background:#172b4d;color:#fff;border-radius:50%;text-align:center;font-weight:bold;line-height:28px}p{margin:6px 0;font-size:14px}</style>
+</head>
+<body>
+<header><strong>Spotter fuel route</strong><p id="summary"></p><p>Estimated access and snapshot prices. Centroid markers are approximate. Verify stations before travel.</p></header>
+<div id="map" aria-label="Driving route and fuel stops"></div>
+{{ plan|json_script:"route-data" }}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const plan=JSON.parse(document.getElementById('route-data').textContent);
+document.getElementById('summary').textContent=`${plan.start.query} → ${plan.finish.query} · ${plan.route.distance_miles} mi · $${plan.fuel.estimated_fuel_cost_usd.toFixed(2)} estimated fuel`;
+const map=L.map('map');
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);
+const route=L.geoJSON(plan.route.geometry,{style:{color:'#2563eb',weight:4}}).addTo(map);
+map.fitBounds(route.getBounds(),{padding:[25,25]});
+const popup=(title,lines)=>{const box=document.createElement('div');const strong=document.createElement('strong');strong.textContent=title;box.append(strong);for(const text of lines){const line=document.createElement('p');line.textContent=text;box.append(line);}return box;};
+L.marker([plan.start.latitude,plan.start.longitude]).addTo(map).bindPopup(popup('Start',[plan.start.query]));
+L.marker([plan.finish.latitude,plan.finish.longitude]).addTo(map).bindPopup(popup('Finish',[plan.finish.query]));
+for(const stop of plan.fuel_stops){L.marker([stop.latitude,stop.longitude],{icon:L.divIcon({className:'stop',html:String(stop.sequence),iconSize:[28,28]})}).addTo(map).bindPopup(popup(stop.name,[`${stop.city}, ${stop.state} · ${stop.geocoding_source}`,`$${stop.retail_price_per_gallon}/gal · Buy ${stop.gallons_purchased} gal · $${stop.estimated_cost.toFixed(2)}`,`Route mile ${stop.route_mile} · Estimated detour ${stop.detour_miles} mi`,'Coordinates: GeoNames (CC BY 4.0) or US Census']));}
+</script>
+</body></html>
