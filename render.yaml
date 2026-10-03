@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: spotter-fuel-route-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 120 --access-logfile -
+    healthCheckPath: /health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.9
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: ORS_API_KEY
+        sync: false
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_SECURE_SSL_REDIRECT
+        value: "true"

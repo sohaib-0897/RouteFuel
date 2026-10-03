@@ -1,0 +1,14 @@
+.env
+.venv
+.git
+.cache
+__pycache__
+*.pyc
+*.sqlite3
+.pytest_cache
+.ruff_cache
+artifacts
+staticfiles
+tests
+postman
+pytest-cache-files-*

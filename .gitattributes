@@ -1,4 +1,4 @@
-*.csv -text
+*.csv -text whitespace=cr-at-eol
 *.py text eol=lf
 *.md text eol=lf
 *.json text eol=lf

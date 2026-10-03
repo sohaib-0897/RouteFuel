@@ -1,0 +1,179 @@
+{
+  "info": {
+    "name": "Spotter Fuel Route API",
+    "description": "Set base_url to localhost or Render. Cold successful route requests use two geocodes and one directions call; station geocoding is offline.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "map_url",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/health/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Healthy and data ready', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dallas → Los Angeles",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"Dallas, TX\",\n  \"finish\": \"Los Angeles, CA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/api/v1/route/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Route succeeds', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) { const p = pm.response.json(); pm.collectionVariables.set('map_url', p.map_url); pm.test('Range respected', () => pm.expect(p.fuel.longest_leg_miles).to.be.at.most(500)); pm.test('GeoJSON route', () => pm.expect(p.route.geometry.type).to.eql('LineString')); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "New York → Chicago",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"New York, NY\",\n  \"finish\": \"Chicago, IL\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/api/v1/route/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Route succeeds', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) { const p = pm.response.json(); pm.collectionVariables.set('map_url', p.map_url); pm.test('Range respected', () => pm.expect(p.fuel.longest_leg_miles).to.be.at.most(500)); pm.test('GeoJSON route', () => pm.expect(p.route.geometry.type).to.eql('LineString')); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cross-country: New York → Seattle",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"350 5th Ave, New York, NY\",\n  \"finish\": \"Seattle, WA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/api/v1/route/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Route succeeds', () => pm.response.to.have.status(200));",
+              "if (pm.response.code === 200) { const p = pm.response.json(); pm.collectionVariables.set('map_url', p.map_url); pm.test('Range respected', () => pm.expect(p.fuel.longest_leg_miles).to.be.at.most(500)); pm.test('GeoJSON route', () => pm.expect(p.route.geometry.type).to.eql('LineString')); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validation failure",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"\",\n  \"finish\": \"Los Angeles, CA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": "{{base_url}}/api/v1/route/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Validation rejects blank origin', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Last route map (open URL in browser)",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}{{map_url}}"
+      }
+    }
+  ]
+}
