@@ -42,12 +42,24 @@ class StationSerializer(serializers.Serializer):
     longitude = serializers.FloatField()
     retail_price_per_gallon = serializers.FloatField()
     geocoding_source = serializers.ChoiceField(choices=["census", "city_centroid"])
+    location_is_approximate = serializers.BooleanField()
 
 
 class FuelStopSerializer(StationSerializer):
     sequence = serializers.IntegerField()
     route_mile = serializers.FloatField()
-    detour_miles = serializers.FloatField(help_text="Estimated round-trip station access distance.")
+    detour_miles = serializers.FloatField(
+        help_text="Round-trip access estimate, or a conservative uncertainty budget for city centroids."
+    )
+    detour_is_estimated = serializers.BooleanField(
+        help_text="True for both coordinate types: road access is not routed."
+    )
+    detour_basis = serializers.ChoiceField(
+        choices=["city_centroid_uncertainty_budget", "geodesic_road_access_estimate"]
+    )
+    centroid_to_route_miles = serializers.FloatField(
+        required=False, help_text="Distance from city centroid to route, not station access."
+    )
     gallons_purchased = serializers.FloatField()
     estimated_cost = serializers.FloatField()
 

@@ -1,0 +1,188 @@
+{
+  "source_category_counts": {
+    "conventional_street": 7,
+    "exit_description": 4616,
+    "highway_interstate": 1670,
+    "intersection": 1826,
+    "malformed_partial": 4,
+    "other": 28
+  },
+  "us_unique_records": 7505,
+  "accepted_census_coordinates": 144,
+  "rejected_census_matches": {
+    "changed_road_identifier": 34,
+    "different_city": 76,
+    "invented_house_number": 334
+  },
+  "exclusive_category_priority": [
+    "exit_description",
+    "conventional_street",
+    "intersection",
+    "highway_interstate",
+    "malformed_partial",
+    "other"
+  ],
+  "census_response_sha256": "9d1260943971b29cc5e519edb5a261c23ac450996788d607a5ebb95fb8efdc39",
+  "categories": {
+    "conventional_street": {
+      "records": 7,
+      "outcomes": {
+        "Match": 5,
+        "No_Match": 2
+      },
+      "normalized_queries": 0,
+      "examples": [
+        {
+          "original": "1323 E MAIN ST",
+          "census_query": "1323 E MAIN ST"
+        },
+        {
+          "original": "206 R-11",
+          "census_query": "206 R-11"
+        },
+        {
+          "original": "214 PLAINS HIGHWAY",
+          "census_query": "214 PLAINS HIGHWAY"
+        },
+        {
+          "original": "1020 5TH ST",
+          "census_query": "1020 5TH ST"
+        },
+        {
+          "original": "1020 5TH ST",
+          "census_query": "1020 5TH ST"
+        }
+      ]
+    },
+    "exit_description": {
+      "records": 4397,
+      "outcomes": {
+        "No_Match": 4047,
+        "Match": 235,
+        "Tie": 115
+      },
+      "normalized_queries": 4395,
+      "examples": [
+        {
+          "original": "I-44, EXIT 283 & US-69",
+          "census_query": "INTERSTATE 44 & US HIGHWAY 69"
+        },
+        {
+          "original": "I-94, EXIT 143 & US-12 & SR-21",
+          "census_query": "INTERSTATE 94 & US HIGHWAY 12 & STATE HIGHWAY 21"
+        },
+        {
+          "original": "I-8, EXIT 119 & SR-85",
+          "census_query": "INTERSTATE 8 & STATE HIGHWAY 85"
+        },
+        {
+          "original": "I-8, EXIT 119 & SR-85",
+          "census_query": "INTERSTATE 8 & STATE HIGHWAY 85"
+        },
+        {
+          "original": "I-540, EXIT 12 & US-71",
+          "census_query": "INTERSTATE 540 & US HIGHWAY 71"
+        }
+      ]
+    },
+    "highway_interstate": {
+      "records": 1415,
+      "outcomes": {
+        "No_Match": 1410,
+        "Match": 5
+      },
+      "normalized_queries": 1345,
+      "examples": [
+        {
+          "original": "US-46",
+          "census_query": "US HIGHWAY 46"
+        },
+        {
+          "original": "US-50",
+          "census_query": "US HIGHWAY 50"
+        },
+        {
+          "original": "US-13",
+          "census_query": "US HIGHWAY 13"
+        },
+        {
+          "original": "US-41",
+          "census_query": "US HIGHWAY 41"
+        },
+        {
+          "original": "SR-32",
+          "census_query": "STATE HIGHWAY 32"
+        }
+      ]
+    },
+    "intersection": {
+      "records": 1681,
+      "outcomes": {
+        "No_Match": 1173,
+        "Match": 343,
+        "Tie": 165
+      },
+      "normalized_queries": 1671,
+      "examples": [
+        {
+          "original": "US-13 & US-40",
+          "census_query": "US HIGHWAY 13 & US HIGHWAY 40"
+        },
+        {
+          "original": "US-59 & SR-224",
+          "census_query": "US HIGHWAY 59 & STATE HIGHWAY 224"
+        },
+        {
+          "original": "US-41 & SR-10",
+          "census_query": "US HIGHWAY 41 & STATE HIGHWAY 10"
+        },
+        {
+          "original": "SR-154 & SR-129",
+          "census_query": "STATE HIGHWAY 154 & STATE HIGHWAY 129"
+        },
+        {
+          "original": "US-169 & CR-5000",
+          "census_query": "US HIGHWAY 169 & COUNTY ROAD 5000"
+        }
+      ]
+    },
+    "malformed_partial": {
+      "records": 1,
+      "outcomes": {
+        "No_Match": 1
+      },
+      "normalized_queries": 1,
+      "examples": [
+        {
+          "original": ",",
+          "census_query": ""
+        }
+      ]
+    },
+    "other": {
+      "records": 4,
+      "outcomes": {
+        "No_Match": 4
+      },
+      "normalized_queries": 1,
+      "examples": [
+        {
+          "original": "BUS-71",
+          "census_query": "BUS-71"
+        },
+        {
+          "original": "Country Road 527",
+          "census_query": "COUNTRY ROAD 527"
+        },
+        {
+          "original": "US-BUS 53",
+          "census_query": "US-BUS 53"
+        },
+        {
+          "original": "LINCOLN HWY",
+          "census_query": "LINCOLN HWY"
+        }
+      ]
+    }
+  }
+}

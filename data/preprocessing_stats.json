@@ -64,14 +64,36 @@
     "WY": 66,
     "YT": 8
   },
-  "census": 588,
-  "city_centroid": 6440,
-  "unmatched": 477,
-  "located": 7028,
-  "located_percent": 93.64,
+  "census": 154,
+  "city_centroid": 6859,
+  "unmatched": 492,
+  "located": 7013,
+  "located_percent": 93.44,
   "source_sha256": "c704371f141ded9c54df6c32d488a0ba2ceb589f88c936c967daa5330e0cd241",
   "geonames_sha256": "b0c65ad3661c2dbda1d833f72b5e3402a886d3759f040b35e6bfa7ad5241f5b3",
-  "census_response_sha256": "9d1260943971b29cc5e519edb5a261c23ac450996788d607a5ebb95fb8efdc39",
+  "census_response_sha256": "08d4f58546837fba45dd1f50d8fc69ffc79daab9d36ab6216627197fbe9bc12b",
   "census_benchmark": "Public_AR_Current",
-  "centroid_source": "https://download.geonames.org/export/zip/US.zip"
+  "centroid_source": "https://download.geonames.org/export/zip/US.zip",
+  "census_query_sha256": "118e7fc871c795c92411ce2d1da0556ed13bd63411c283b8ac0432608766a9b2",
+  "census_query_normalization": "normalized_v1",
+  "census_cache_file": "census-c704371f141ded9c54df6c32d488a0ba2ceb589f88c936c967daa5330e0cd241-118e7fc871c795c92411ce2d1da0556ed13bd63411c283b8ac0432608766a9b2.csv",
+  "census_rejected_matches": {
+    "changed_road_identifier": 67,
+    "different_city": 432,
+    "invented_house_number": 310
+  },
+  "census_response_status_counts": {
+    "No_Match": 5965,
+    "Match": 963,
+    "Tie": 577
+  },
+  "address_pattern_counts": {
+    "conventional_street": 7,
+    "exit_description": 4397,
+    "highway_interstate": 1415,
+    "intersection": 1681,
+    "malformed_partial": 1,
+    "other": 4
+  },
+  "normalized_address_count": 7413
 }

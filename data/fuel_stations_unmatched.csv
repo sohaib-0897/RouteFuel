@@ -7,6 +7,8 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 89,361,CIRCLE K #2726293,"I-295, EXIT 25",Jacksonville,FL,75,3.31566666,,,unmatched
 99,421,PETRO STOPPING CENTER #316,"I-40 & I-35, EXIT 127",Oklahoma City,OK,483,3.30233333,,,unmatched
 112,486,LA NORIA CONV STORES,"I-35 N, EXIT 4",Laredo,TX,693,3.299,,,unmatched
+115,496,PILOT TRAVEL CENTERS #270,"I-40 & I-75, EXIT 374",Knoxville,TN,405,3.439,,,unmatched
+144,652,TA KNOXVILLE EAST TRAVEL CENTER,"I-40 & I-75, EXIT 374",Knoxville,TN,405,3.42566666,,,unmatched
 149,689,FLYING EAGLE,"I-235, EXIT 4",Wichita,KS,570,3.499,,,unmatched
 164,970,CIRCLE K #2702885,"I-17/SR-60, EXIT 199A",Phoenix,AZ,930,3.39233333,,,unmatched
 255,1507,CIRCLE K #4703941,"I-55, EXIT 5A",Memphis,TN,435,3.189,,,unmatched
@@ -26,6 +28,8 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 375,2125,BIG D #44,"I-80, EXIT 311 & SR-130",Laramie,WY,795,3.249,,,unmatched
 390,2231,QUIKTRIP #605,"I-270, EXIT 33",Saint Louis,MO,540,2.899,,,unmatched
 427,2875,CIRCLE K #2744138,"I-25, EXIT 101 & US-50/SR-47",Pueblo,CO,803,3.399,,,unmatched
+428,2883,PILOT TRAVEL CENTER #293,"I-75, EXIT 341 & CR-484",Ocala,FL,140,3.41233333,,,unmatched
+429,2883,PILOT TRAVEL CENTERS #293,"I-75, EXIT 341 & CR-484",Ocala,FL,140,3.359,,,unmatched
 440,2922,LOVES TRAVEL STOP #210,"I-40, EXIT 158",Albuquerque,NM,580,3.52066666,,,unmatched
 446,2935,CIRCLE K #2726163,"I-295, EXIT 22",Jacksonville,FL,75,3.299,,,unmatched
 448,2956,PILOT TRAVEL CENTERS #275,"I-85, EXIT 39 I-77, EXIT 13",Charlotte,NC,46,3.55233333,,,unmatched
@@ -34,10 +38,13 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 497,3383,E-Express at Central Truck Stop,"I-35, EXIT 137",Oklahoma City,OK,483,2.879,,,unmatched
 509,3444,Acme Truck Stop,US-441/SR-500,Orlando,FL,140,3.449,,,unmatched
 511,3464,BOISE PETROLEUM LLC,"I-84, EXIT 71",Boise,ID,785,3.379,,,unmatched
+522,3536,PETRO STOPPING CENTER #307,I-40 EAST & S LAKESIDE Dr,Amarillo,TX,585,3.279,,,unmatched
 541,3692,CHARLOTTE TRAVEL PLAZA,"I-77, EXIT 16B",Charlotte,NC,46,3.53233333,,,unmatched
 556,3783,CIRCLE K #2744095,"I-25, EXIT 215",Denver,CO,800,3.299,,,unmatched
 558,3817,FAST MARKET,"I-25, EXIT 158",Colorado Springs,CO,803,3.159,,,unmatched
 565,3908,SEMINOLE TRUCK STOP,"I-75, EXIT 354",Fort Lauderdale,FL,95,3.699,,,unmatched
+566,3927,MICCOSUKEE SERVICE PLAZA,"I-75, EXIT 49 & SR-84",Fort Lauderdale,FL,95,3.66566666,,,unmatched
+574,3973,LOVES TRAVEL STOP #205,"I-35 & I-44, EXIT 137",Oklahoma City,OK,483,3.319,,,unmatched
 585,4080,SHELL DBA PILOT DEALER #874,US-41,Miami,FL,176,3.699,,,unmatched
 586,4080,PILOT TRAVEL CENTERS #874,US-41,Miami,FL,176,3.699,,,unmatched
 589,4115,QUIKTRIP #707,"I-85 , EXIT 96",Atlanta,GA,18,3.34066666,,,unmatched
@@ -61,6 +68,7 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 938,6221,LOVES TRAVEL STOP #214,I-10 EXIT 37,El Paso,TX,640,3.07566666,,,unmatched
 940,6227,MARLOWS FUEL CENTER,"I-20, EXIT 479",Dallas,TX,630,3.24066666,,,unmatched
 958,6305,I-95 Fuel Stop,"I-95, EXIT 126 & US-17/US-1",Fredericksburg,VA,180,3.264,,,unmatched
+966,6327,PETRO STOPPING CENTER #312,"I-40 & I-75, EXIT 369",Knoxville,TN,405,3.42566666,,,unmatched
 998,6547,FLYING J TRAVEL PLAZA #762,"I-90, EXIT 126 & SR-59",Gillette,WY,836,3.899,,,unmatched
 1009,6608,7-ELEVEN #35560,SR-16,Charlotte,NC,46,3.999,,,unmatched
 1040,6823,PETRO STOPPING CENTER #301,"I-10, EXIT 37",El Paso,TX,640,3.124,,,unmatched
@@ -79,6 +87,7 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 1166,7248,WILD WILD WEST TRAVEL PLAZA,"I-15, EXIT 37",Las Vegas,NV,910,3.76733333,,,unmatched
 1171,7268,SAPP BROS TRAVEL CENTER,"I-80, EXIT 440 & SR-50, EXIT 440",Omaha,NE,486,3.28066666,,,unmatched
 1252,7482,TA BOISE TRAVEL CENTER,"I-84, EXIT 54",Boise,ID,785,3.77066666,,,unmatched
+1260,7534,TA BALDWIN TRAVEL CENTER,"I-10, EXIT 343 & US-301",Jacksonville,FL,75,3.899,,,unmatched
 1261,7535,GIANT #198,"I-4/SR-400, EXIT 7 & US-301/SR-41",Tampa,FL,225,3.25733333,,,unmatched
 1273,7617,TUCSON TRUCK TERMINAL,"I-10, EXIT 268",Tucson,AZ,980,3.22233333,,,unmatched
 1283,7705,FLYING J TRAVEL PLAZA #610,"I-40, EXIT 53",Kingman,AZ,910,3.88233333,,,unmatched
@@ -86,6 +95,7 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 1308,8840,LOVES TRAVEL STOP #211,"I-35, EXIT 120",Oklahoma City,OK,483,3.25566666,,,unmatched
 1343,9542,SPINX #266,"I-26, EXIT 104",Columbia,SC,135,3.13233333,,,unmatched
 1351,9675,FLYING J TRAVEL PLAZA #722,"I-75 & I-40, EXIT 369",Knoxville,TN,405,3.439,,,unmatched
+1362,9803,TA KNOXVILLE WEST TRAVEL CENTER,"I-40 & I-75, EXIT 369",Knoxville,TN,405,3.42566666,,,unmatched
 1367,9812,LEES FOOD MART #1398,"I-40, EXIT 398",Knoxville,TN,405,3.299,,,unmatched
 1390,10014,Sudden Service #6604,"I-40, EXIT 212",Nashville,TN,460,3.399,,,unmatched
 1391,10015,Loves Travel Stop #429,"I-65 & I-24, EXIT 87",Nashville,TN,460,3.46233333,,,unmatched
@@ -94,6 +104,7 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 1400,10057,Flying J TravelPlaza #649,"I-465, EXIT 4",Indianapolis,IN,375,3.899,,,unmatched
 1405,10101,PILOT TRAVEL CENTERS #65,"I-20, EXIT 194",Augusta,GA,135,3.859,,,unmatched
 1406,10101,PILOT TRAVEL CENTER #65,"I-20, EXIT 194",Augusta,GA,135,3.859,,,unmatched
+1438,20024,LOVES TRAVEL STOP #259,"I-10 & AIRPORT RD, EXIT 132",Las Cruces,NM,640,3.214,,,unmatched
 1460,20109,PILOT TRAVEL CENTERS #306,"I-10, EXIT 582",San Antonio,TX,740,3.214,,,unmatched
 1473,52067,PETRO STOPPING CENTER #322,"I-285, EXIT 12",Atlanta,GA,18,3.44566666,,,unmatched
 1495,52145,Pilot Travel Center #318,"I-465/I-74/US-52/US-40/SR-67, EXIT 4 & SR-37",Indianapolis,IN,375,3.899,,,unmatched
@@ -143,7 +154,6 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 2277,63792,PILOT TRAVEL CENTER #424,"I-75, EXIT 358",Ocala,FL,140,3.41233333,,,unmatched
 2278,63792,PILOT TRAVEL CENTERS #424,"I-75, EXIT 358",Ocala,FL,140,3.359,,,unmatched
 2287,63801,PILOT #1126,"I-435, EXIT 55 & SR-210",Kansas City,MO,400,3.38233333,,,unmatched
-2292,63813,TA SAN ANTONIO TRAVELCENTER,"I-10 & FOSTER RD, EXIT 583",San Antonio,TX,740,3.20733333,,,unmatched
 2307,63876,Mobil,"FL TURNPIKE, EXIT 244",Kissimmee,FL,225,3.449,,,unmatched
 2309,63893,QUICK FUEL #2204,"I-285, EXIT 58/SR-407 & I-75, EXIT 237/SR-401",Atlanta,GA,18,3.27566666,,,unmatched
 2326,63942,Discount Zone,"I-10, EXIT CLEARVIEW",New Orleans,LA,725,3.279,,,unmatched
@@ -185,6 +195,8 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 2975,66036,FLYING J TRAVEL PLAZA #602,"I-65, EXIT 264",Birmingham,AL,615,3.559,,,unmatched
 2980,66040,LOVES TRAVEL STOP #272,"I-40 & DW (RANCH RD), EXIT 59",Kingman,AZ,910,3.85566666,,,unmatched
 2992,66056,PILOT TRAVEL CENTERS #114,"I-40, EXIT 320",Crossville,TN,405,3.24566666,,,unmatched
+3047,66141,QUICK FUEL #5102,"SR-826, EXIT NW 58TH ST",Miami,FL,95,3.389,,,unmatched
+3048,66142,QUICK FUEL #5106,SR-589 & SR-580,Tampa,FL,225,3.49233333,,,unmatched
 3049,66149,QUICK FUEL #5105,"I-75, EXIT W BRANDON BLVD",Tampa,FL,225,3.50066666,,,unmatched
 3053,66172,Timewise Food Store #163,"I-35, EXIT 8",Laredo,TX,693,2.93566666,,,unmatched
 3069,66223,7-ELEVEN #36548,SR-83,Laredo,TX,693,2.999,,,unmatched
@@ -274,6 +286,7 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 4602,69396,SPEEDWAY #7158,"I-40, EXIT 320 & SR-98",Crossville,TN,460,3.07233333,,,unmatched
 4618,69421,CIRCLE K #2741257,"I-10, EXIT 19B",El Paso,TX,640,2.91566666,,,unmatched
 4619,69423,FAST MARKET #4574,SR-375 & CR-258,El Paso,TX,640,2.90566666,,,unmatched
+4632,69451,LOVES TRAVEL STOP #603,I-95 EXIT 366 AT PECAN PARK RD,Jacksonville,FL,75,3.399,,,unmatched
 4640,69465,MAVERIK COUNTRY STORE #476,US-59,Gillette,WY,790,3.36566666,,,unmatched
 4644,69471,Circle K #2741501,"I-37, EXIT 3A",Corpus Christi,TX,625,3.104,,,unmatched
 4681,69530,CIRCLE K #2741030,"I-35, EXIT 160",San Antonio,TX,740,2.999,,,unmatched
@@ -369,6 +382,7 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 5901,71102,365 Food and Fuel,"I-35W/US-287, EXIT 54A & SR-183",Fort Worth,TX,637,2.97566666,,,unmatched
 5905,71106,SECURITY OIL,"I-135, EXIT 10B & SR-96",Wichita,KS,570,3.299,,,unmatched
 5916,71117,AM-PM TRUCK STOP,"I-520/SR-415, EXIT 9 & SR-56",Augusta,GA,135,3.359,,,unmatched
+5924,71124,LOVES TRAVEL STOP #761,"I-10, EXIT 343 & US-301",Jacksonville,FL,75,3.849,,,unmatched
 5927,71129,Queens Market,"I-85, EXIT 41 & SR-2480",Charlotte,NC,46,3.499,,,unmatched
 5998,71200,LOVES TRAVEL STOP #730,"I-80, EXIT 440 & SR-50",Omaha,NE,319,3.28066666,,,unmatched
 5999,71201,PRIDE TRAVEL CENTER,I-91 EXIT 33,Hartford,CT,100,3.509,,,unmatched
@@ -444,6 +458,7 @@ record_id,opis_truckstop_id,name,address,city,state,rack_id,price,longitude,lati
 7071,72603,THORNTONS #170,I-465 Exit 46 & US-40,Indianapolis,IN,375,3.599,,,unmatched
 7099,72637,AZTEX #104,I-40 Exit 398,Knoxville,TN,405,3.359,,,unmatched
 7103,72643,ONCUE #147,"I-44, EXIT 12",Oklahoma City,OK,483,3.049,,,unmatched
+7122,72669,Quiktrip #356,US-81 & S Victoria RD,Wichita,KS,570,3.194,,,unmatched
 7135,72681,MAVERIK #691,I-76 EXIT 3,Denver,CO,800,3.284,,,unmatched
 7154,72702,Loves Travel Stop #854,I-49 EXIT 215,Shreveport,LA,745,2.93733333,,,unmatched
 7193,72753,QUIKTRIP #7908,I-40 EXIT 73,Amarillo,TX,585,2.874,,,unmatched

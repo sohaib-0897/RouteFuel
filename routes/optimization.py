@@ -12,13 +12,20 @@ class Node:
     side: float
     price: Decimal
     station: Station | None
+    centroid_to_route_miles: float | None = None
 
 
 def leg_distance(a: Node, b: Node) -> float:
     return b.mile - a.mile + a.side + b.side
 
 
-def optimize(candidates: list[Candidate], distance: float, initial: Station) -> dict:
+def optimize(
+    candidates: list[Candidate],
+    distance: float,
+    initial: Station,
+    *,
+    centroid_penalty_usd: Decimal = Decimal("15"),
+) -> dict:
     """DAG shortest path, then optimal fuel purchasing on that fixed itinerary.
 
     Path selection uses a just-enough-per-leg upper bound. Purchasing can improve
@@ -26,7 +33,13 @@ def optimize(candidates: list[Candidate], distance: float, initial: Station) -> 
     """
     nodes = [Node(0, 0, initial.price, None)]
     nodes.extend(
-        Node(c.route_mile, c.side_miles, c.station.price, c.station)
+        Node(
+            c.route_mile,
+            max(c.side_miles, 5.0) if c.station.geocoding_source == "city_centroid" else c.side_miles,
+            c.station.price,
+            c.station,
+            c.centroid_to_route_miles,
+        )
         for c in sorted(candidates, key=lambda c: (c.route_mile, c.station.record_id))
     )
     nodes.append(Node(distance, 0, Decimal(0), None))
@@ -44,6 +57,8 @@ def optimize(candidates: list[Candidate], distance: float, initial: Station) -> 
             if miles > MAX_RANGE + 1e-9:
                 continue
             value = costs[i] + Decimal(str(miles)) / Decimal(str(MPG)) * nodes[i].price
+            if nodes[j].station is not None and nodes[j].station.geocoding_source == "city_centroid":
+                value += centroid_penalty_usd
             count = stops[i] + (nodes[j].station is not None)
             if (value, count, i) < (costs[j], stops[j], parents[j]):
                 costs[j], parents[j], stops[j] = value, i, count
@@ -75,6 +90,17 @@ def optimize(candidates: list[Candidate], distance: float, initial: Station) -> 
                 "sequence": i,
                 "route_mile": round(node.mile, 2),
                 "detour_miles": round(node.side * 2, 2),
+                "detour_is_estimated": True,
+                "detour_basis": (
+                    "city_centroid_uncertainty_budget"
+                    if node.station.geocoding_source == "city_centroid"
+                    else "geodesic_road_access_estimate"
+                ),
+                **(
+                    {"centroid_to_route_miles": round(node.centroid_to_route_miles, 2)}
+                    if node.centroid_to_route_miles is not None
+                    else {}
+                ),
                 "gallons_purchased": round(float(purchases[i]), 4),
                 "estimated_cost": round(float(purchases[i] * node.price), 2),
             }
@@ -86,7 +112,7 @@ def optimize(candidates: list[Candidate], distance: float, initial: Station) -> 
     return {
         "fuel_stops": fuel_stops,
         "initial_fueling": {
-            "assumption": "Fuel loaded at origin, priced using the nearest dataset station; not a station visit.",
+            "assumption": "Fuel loaded at origin, priced using a nearby accuracy-weighted dataset station; not a station visit.",
             "price_reference_station": initial.public(),
             "gallons_purchased": round(float(initial_gallons), 4),
             "estimated_cost": round(float(initial_cost), 2),
@@ -102,6 +128,8 @@ def optimize(candidates: list[Candidate], distance: float, initial: Station) -> 
             "method": "cost-aware DAG itinerary followed by greedy fuel purchasing",
             "range_basis": "route miles plus estimated station access miles",
             "globally_optimal": False,
+            "centroid_stop_penalty_usd": float(centroid_penalty_usd),
+            "quality_penalty_included_in_fuel_cost": False,
         },
     }
 

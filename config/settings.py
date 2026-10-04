@@ -47,6 +47,9 @@ ORS_API_KEY = os.getenv("ORS_API_KEY", "")
 STATION_DATA_PATH = Path(os.getenv("STATION_DATA_PATH", str(BASE_DIR / "data/fuel_stations_processed.csv")))
 ROUTE_CORRIDOR_MILES = float(os.getenv("ROUTE_CORRIDOR_MILES", "15"))
 MAX_DETOUR_MILES = float(os.getenv("MAX_DETOUR_MILES", "20"))
+CENTROID_CORRIDOR_MILES = float(os.getenv("CENTROID_CORRIDOR_MILES", "35"))
+CENTROID_MAX_DETOUR_MILES = float(os.getenv("CENTROID_MAX_DETOUR_MILES", "110"))
+CENTROID_STOP_PENALTY_USD = float(os.getenv("CENTROID_STOP_PENALTY_USD", "15"))
 CACHE_TTL = 3600
 CACHES = {
     "default": {

@@ -44,6 +44,7 @@ class Station:
             "latitude": self.latitude,
             "retail_price_per_gallon": round(float(self.price), 4),
             "geocoding_source": self.geocoding_source,
+            "location_is_approximate": self.geocoding_source == "city_centroid",
         }
 
 
@@ -51,7 +52,8 @@ class Station:
 class Candidate:
     station: Station
     route_mile: float
-    side_miles: float  # One-way estimated driving distance to route.
+    side_miles: float  # One-way access estimate, or centroid uncertainty budget.
+    centroid_to_route_miles: float | None = None
 
 
 class StationIndex:
@@ -110,7 +112,14 @@ class StationIndex:
             miles = GEOD.inv(lon, lat, station.longitude, station.latitude)[2] / METERS_PER_MILE
             if miles <= 25:
                 nearby.append(
-                    (miles, station.geocoding_source != "census", station.price, station.record_id, station)
+                    (
+                        miles + (5 if station.geocoding_source == "city_centroid" else 0),
+                        station.geocoding_source != "census",
+                        station.price,
+                        station.record_id,
+                        station,
+                        miles,
+                    )
                 )
         if not nearby:
             raise RouteError(
@@ -118,10 +127,17 @@ class StationIndex:
                 "no_initial_station",
             )
         closest = min(nearby, key=lambda item: item[:4])
-        return closest[4], closest[0]
+        return closest[4], closest[5]
 
     def candidates(
-        self, geometry: dict, distance_miles: float, corridor_miles: float, max_detour_miles: float
+        self,
+        geometry: dict,
+        distance_miles: float,
+        corridor_miles: float,
+        max_detour_miles: float,
+        *,
+        centroid_corridor_miles: float | None = None,
+        centroid_max_detour_miles: float | None = None,
     ) -> list[Candidate]:
         coords = geometry["coordinates"]
         points = [PROJECT.transform(*point[:2]) for point in coords]
@@ -136,19 +152,26 @@ class StationIndex:
         if geodesic[-1] <= 0:
             raise RouteError("Unsupported degenerate route.", "unsupported_route")
         candidates = []
+        city_corridor = corridor_miles if centroid_corridor_miles is None else centroid_corridor_miles
+        city_detour_limit = (
+            max_detour_miles if centroid_max_detour_miles is None else centroid_max_detour_miles
+        )
         # Small projection distortion allowance; final corridor filtering is geodesic.
-        for index in self.tree.query(line.buffer(corridor_miles * METERS_PER_MILE * 1.05)):
+        for index in self.tree.query(
+            line.buffer(max(corridor_miles, city_corridor) * METERS_PER_MILE * 1.05)
+        ):
             index = int(index)
             station = self.stations[index]
+            approximate = station.geocoding_source == "city_centroid"
             along = line.project(self.points[index])
             nearest = line.interpolate(along)
             lon, lat = UNPROJECT.transform(nearest.x, nearest.y)
             lateral = GEOD.inv(lon, lat, station.longitude, station.latitude)[2] / METERS_PER_MILE
-            if lateral > corridor_miles:
+            if lateral > (city_corridor if approximate else corridor_miles):
                 continue
             # Centroid uncertainty is disclosed and conservatively budgeted, not hidden.
-            side = lateral * 1.4 + (5.0 if station.geocoding_source == "city_centroid" else 0)
-            if side * 2 > max_detour_miles:
+            side = lateral * 1.4 + (5.0 if approximate else 0)
+            if side * 2 > (city_detour_limit if approximate else max_detour_miles):
                 continue
             segment = min(bisect.bisect_right(projected, along) - 1, len(points) - 2)
             span = projected[segment + 1] - projected[segment]
@@ -156,7 +179,7 @@ class StationIndex:
             progress = geodesic[segment] + fraction * (geodesic[segment + 1] - geodesic[segment])
             mile = progress / geodesic[-1] * distance_miles
             if 0 < mile < distance_miles:
-                candidates.append(Candidate(station, mile, side))
+                candidates.append(Candidate(station, mile, side, lateral if approximate else None))
         return sorted(candidates, key=lambda candidate: (candidate.route_mile, candidate.station.record_id))
 
 

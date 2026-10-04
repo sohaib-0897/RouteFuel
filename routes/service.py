@@ -2,6 +2,7 @@ import copy
 import hashlib
 import json
 import uuid
+from decimal import Decimal
 
 import httpx
 from django.conf import settings
@@ -22,8 +23,11 @@ def plan_route(start: str, finish: str) -> dict:
         index.fingerprint,
         settings.ROUTE_CORRIDOR_MILES,
         settings.MAX_DETOUR_MILES,
+        settings.CENTROID_CORRIDOR_MILES,
+        settings.CENTROID_MAX_DETOUR_MILES,
+        settings.CENTROID_STOP_PENALTY_USD,
     ]
-    key = "plan:v1:" + hashlib.sha256(json.dumps(key_data).encode()).hexdigest()
+    key = "plan:v2:" + hashlib.sha256(json.dumps(key_data).encode()).hexdigest()
     result = cache.get(key)
     if result is None:
         with httpx.Client(timeout=httpx.Timeout(30, connect=5), trust_env=False) as http:
@@ -33,9 +37,16 @@ def plan_route(start: str, finish: str) -> dict:
         miles = route["distance_meters"] / METERS_PER_MILE
         initial, reference_distance = index.initial_price(origin["longitude"], origin["latitude"])
         candidates = index.candidates(
-            route["geometry"], miles, settings.ROUTE_CORRIDOR_MILES, settings.MAX_DETOUR_MILES
+            route["geometry"],
+            miles,
+            settings.ROUTE_CORRIDOR_MILES,
+            settings.MAX_DETOUR_MILES,
+            centroid_corridor_miles=settings.CENTROID_CORRIDOR_MILES,
+            centroid_max_detour_miles=settings.CENTROID_MAX_DETOUR_MILES,
         )
-        plan = optimize(candidates, miles, initial)
+        plan = optimize(
+            candidates, miles, initial, centroid_penalty_usd=Decimal(str(settings.CENTROID_STOP_PENALTY_USD))
+        )
         plan["initial_fueling"]["reference_distance_miles"] = round(reference_distance, 2)
         result = {
             "start": origin,
@@ -58,7 +69,8 @@ def plan_route(start: str, finish: str) -> dict:
         }
         if any(s["geocoding_source"] == "city_centroid" for s in plan["fuel_stops"]):
             result["warnings"].append(
-                "City-centroid stops are approximate locations, not verified station coordinates."
+                "City-centroid stops are city-level candidates, not verified station coordinates. "
+                "Their detour_miles are uncertainty budgets; confirm the actual stop and road access."
             )
         cache.set(key, result, settings.CACHE_TTL)
     result = copy.deepcopy(result)

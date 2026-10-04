@@ -8,7 +8,7 @@ Show the README diagram. Say: “This API accepts two U.S. locations, gets one c
 
 ## 0:30–1:15 — Dataset preprocessing
 
-Show `data/preprocessing_stats.json`, then `routes/preprocessing.py`: `read_source`, `parse_census`, `load_centroids`, and `prepare`. Say: “The input has 8,151 rows. I filter 620 Canadian rows and remove 26 exact duplicates while preserving distinct records with repeated IDs. Census matches 588 addresses. Highway exits often do not match, so 6,440 use explicitly labeled city centroids; 477 are excluded. The generated file is committed. None of this happens inside a route request.”
+Show `data/preprocessing_stats.json`, then `routes/preprocessing.py`: `read_source`, `parse_census`, `load_centroids`, and `prepare`. Say: “The input has 8,151 rows. I filter 620 Canadian rows and remove 26 exact duplicates while preserving distinct records with repeated IDs. After normalization and conservative match checks, Census locates 154 records. Highway exits often do not match, so 6,859 use labeled city centroids; 492 are excluded. The generated file is committed. None of this happens inside a route request.”
 
 ## 1:15–2:15 — Django and routing
 
@@ -16,7 +16,7 @@ Show `routes/views.py:RouteView.post`, `routes/serializers.py:RouteRequestSerial
 
 ## 2:15–3:00 — Fuel optimization
 
-Show `routes/stations.py:StationIndex.candidates`, then `routes/optimization.py:leg_distance`, `optimize`, and `purchase_on_path`. Say: “Candidates follow actual route geometry. I estimate access distance and budget extra uncertainty for centroid records. DAG edges obey the 500-mile limit including access. Path selection uses prices; greedy purchasing then carries cheaper fuel along that itinerary. Initial fuel is charged at a disclosed local reference price, so it is never free. I claim fixed-itinerary purchase optimality, not globally optimal routing.”
+Show `routes/stations.py:StationIndex.candidates`, then `routes/optimization.py:leg_distance`, `optimize`, and `purchase_on_path`. Say: “Candidates follow actual route geometry. I estimate access distance and budget extra uncertainty for centroid records. DAG edges obey the 500-mile limit including access. Path selection uses prices and a centroid uncertainty penalty that is never billed; greedy purchasing then carries cheaper fuel along that itinerary. Initial fuel is charged at a disclosed local reference price, so it is never free. I claim fixed-itinerary purchase optimality, not globally optimal routing.”
 
 ## 3:00–4:15 — Postman and map
 

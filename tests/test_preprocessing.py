@@ -147,7 +147,7 @@ def test_remote_prepare_uses_two_batch_level_calls(tmp_path):
         if request.method == "GET":
             return httpx.Response(200, content=zip_centroids())
         assert b"Public_AR_Current" in request.content
-        assert b"100 Main Street" in request.content
+        assert b"100 MAIN ST" in request.content
         return httpx.Response(200, text=census_response(records))
 
     def factory(**kwargs):

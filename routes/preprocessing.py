@@ -11,6 +11,7 @@ from pathlib import Path
 
 import httpx
 
+from .addresses import classify_address, match_rejection, normalize_census_address
 from .constants import US_STATES
 from .routing import GEOD, coordinates
 
@@ -121,7 +122,9 @@ def load_centroids(content: bytes) -> dict[tuple[str, str], tuple[float, float]]
     return result
 
 
-def parse_census(text: str, records: list[dict]) -> dict[str, tuple[float, float]]:
+def parse_census(
+    text: str, records: list[dict], rejections: Counter | None = None
+) -> dict[str, tuple[float, float]]:
     expected = {record["record_id"]: record for record in records}
     result = {}
     received = set()
@@ -141,11 +144,35 @@ def parse_census(text: str, records: list[dict]) -> dict[str, tuple[float, float
         # Census matchedAddress ends in city, state, ZIP. Reject cross-state matches.
         address_parts = [part.strip() for part in row[4].split(",")]
         if len(address_parts) < 3 or address_parts[-2] != expected[row[0]]["state"]:
+            if rejections is not None:
+                rejections["different_state"] += 1
+            continue
+        record = expected[row[0]]
+        reason = match_rejection(record["address"], record["city"], row[4])
+        if reason is not None:
+            if rejections is not None:
+                rejections[reason] += 1
             continue
         result[row[0]] = (lon, lat)
     if received != set(expected):
         raise ValueError("Incomplete Census batch response; refusing silent data loss")
     return result
+
+
+def census_batch(records: list[dict]) -> bytes:
+    batch = io.StringIO(newline="")
+    writer = csv.writer(batch)
+    for record in records:
+        writer.writerow(
+            [
+                record["record_id"],
+                normalize_census_address(record["address"]),
+                record["city"],
+                record["state"],
+                "",
+            ]
+        )
+    return batch.getvalue().encode("utf-8")
 
 
 def prepare(
@@ -156,7 +183,14 @@ def prepare(
         raise ValueError("Census batch requires between 1 and 10,000 US records")
     source_hash = hashlib.sha256(source.read_bytes()).hexdigest()
     cache_dir.mkdir(parents=True, exist_ok=True)
-    census_path = cache_dir / f"census-{source_hash}.csv"
+    batch = census_batch(records)
+    query_hash = hashlib.sha256(batch).hexdigest()
+    census_path = cache_dir / f"census-{source_hash}-{query_hash}.csv"
+    # Old cached batches remain useful for offline reproduction; validate them
+    # with the same stricter match checks rather than silently trusting them.
+    legacy = cache_dir / f"census-{source_hash}.csv"
+    if offline and not census_path.exists() and legacy.exists() and not refresh:
+        census_path = legacy
     names_path = cache_dir / "geonames-US.zip"
     with httpx.Client(
         timeout=httpx.Timeout(600, connect=20), follow_redirects=True, trust_env=False
@@ -171,19 +205,17 @@ def prepare(
         if refresh or not census_path.exists():
             if offline:
                 raise ValueError("Offline mode requires a cached Census batch response")
-            batch = io.StringIO(newline="")
-            writer = csv.writer(batch)
-            for record in records:
-                writer.writerow([record["record_id"], record["address"], record["city"], record["state"], ""])
             response = client.post(
                 CENSUS_URL,
                 data={"benchmark": "Public_AR_Current"},
-                files={"addressFile": ("addresses.csv", batch.getvalue().encode(), "text/csv")},
+                files={"addressFile": ("addresses.csv", batch, "text/csv")},
             )
             response.raise_for_status()
             parse_census(response.text, records)
             census_path.write_text(response.text, encoding="utf-8", newline="")
-    matches = parse_census(census_path.read_text(encoding="utf-8"), records)
+    rejections = Counter()
+    census_text = census_path.read_text(encoding="utf-8")
+    matches = parse_census(census_text, records, rejections)
     centroids = load_centroids(names_path.read_bytes())
     prepared = []
     excluded = []
@@ -217,6 +249,15 @@ def prepare(
         census_response_sha256=hashlib.sha256(census_path.read_bytes()).hexdigest(),
         census_benchmark="Public_AR_Current",
         centroid_source=GEONAMES_URL,
+        census_query_sha256=query_hash if census_path != legacy else None,
+        census_query_normalization="normalized_v1" if census_path != legacy else "legacy_cached",
+        census_cache_file=census_path.name,
+        census_rejected_matches=dict(sorted(rejections.items())),
+        census_response_status_counts=dict(
+            Counter(row[2] for row in csv.reader(io.StringIO(census_text)) if row)
+        ),
+        address_pattern_counts=dict(sorted(Counter(classify_address(r["address"]) for r in records).items())),
+        normalized_address_count=sum(normalize_census_address(r["address"]) != r["address"] for r in records),
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_suffix(".tmp")

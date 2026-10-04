@@ -23,11 +23,11 @@ Responsibilities are separated in `routes/routing.py`, `stations.py`, `optimizat
 
 ## Fuel model and optimization
 
-The vehicle starts with fuel **purchased and loaded at the origin**, with its price estimated from the nearest dataset station within 25 geodesic miles. This station is a price reference, not a claimed visit; the response exposes its coordinates, distance, quality, gallons, and cost. Initial fuel is never free. The algorithm chooses the initial quantity, charges all purchases, and finishes with zero estimated fuel. No reserve, price tax adjustment, idle consumption, or purchase transaction fee is modeled.
+The vehicle starts with fuel **purchased and loaded at the origin**, priced from a dataset station within 25 geodesic miles. Reference selection adds five miles to centroid distances, preferring a Census location when reasonably nearby. This is a price reference, not a claimed visit; the response exposes its coordinates, distance, quality, gallons, and cost. Initial fuel is never free. The algorithm chooses the initial quantity, charges all purchases, and finishes with zero estimated fuel. No reserve, price tax adjustment, idle consumption, or purchase transaction fee is modeled.
 
-1. Query the spatial index within a configurable 15-mile route corridor. EPSG:5070 supplies route projection; WGS84 geodesic distances supply lateral distance and segment progress, scaled to the provider's actual road mileage. Degrees are never treated as miles.
-2. Estimate each station's one-way access as `1.4 × lateral miles`. City-centroid stations receive an additional **5-mile one-way uncertainty allowance**. Discard round-trip access over `MAX_DETOUR_MILES` (20 by default).
-3. Build a forward DAG. An edge is feasible only when `progress difference + departure access + arrival access <= 500 miles`. Shortest-path dynamic programming minimizes a just-enough-per-leg fuel-cost upper bound; price and access both affect the chosen itinerary. Ties prefer fewer stops, then deterministic record order.
+1. Query separate configurable corridors: **15 miles for Census locations, 35 miles for city centroids**. The wider city corridor preserves highway coverage when a centroid is displaced from the truck stop. EPSG:5070 supplies projection; WGS84 geodesic distances supply lateral distance and progress, scaled to provider road mileage. Centroid progress is approximate; degrees are never treated as miles.
+2. Census one-way access is estimated as `1.4 × lateral miles`, capped at 20 round-trip miles. Centroid access uses a **planning uncertainty budget** of `1.4 × centroid offset + 5` one-way miles, capped at 110 round-trip miles (the 35-mile corridor requires up to 108). This budget is not a measured station detour and prevents fake zero-access advantages.
+3. Build a forward DAG. An edge is feasible only when `progress difference + departure access + arrival access <= 500 miles`. Shortest-path dynamic programming minimizes a just-enough-per-leg fuel-cost upper bound **plus $15 per centroid stop**. This configurable selection penalty favors competitive accurately located alternatives; it is never billed or included in fuel cost. Ties prefer fewer stops, then deterministic record order.
 4. On that itinerary, buy enough to reach the first reachable cheaper station; otherwise fill up, or buy only enough to finish. This exchange-rule algorithm minimizes continuous fuel purchase cost **for the fixed itinerary**. Remove zero-purchase visits, remove their detours, and recalculate until stable.
 
 This is **cost-optimized, not globally optimal across all possible itineraries**. Capacity and conservation are enforced before presentation rounding. Cost uses `Decimal`; mileage retains full floating-point precision. The total is rounded once from unrounded purchases, so displayed stop cents may sum a cent differently. Route duration and geometry describe the provider's main route, excluding estimated station access and fueling time.
@@ -43,14 +43,16 @@ This is **cost-optimized, not globally optimal across all possible itineraries**
 | U.S. rows before deduplication | 7,531 |
 | Exact normalized duplicates removed | 26 |
 | Unique valid U.S. records | 7,505 |
-| Census address matches | 588 |
-| GeoNames city-centroid fallback | 6,440 |
-| Unmatched/ambiguous city footprints excluded | 477 |
-| Located records used by app | 7,028 (93.64%) |
+| Validated Census address/junction matches | 154 |
+| GeoNames city-centroid fallback | 6,859 |
+| Unmatched/ambiguous city footprints excluded | 492 |
+| Located records used by app | 7,013 (93.44%) |
 
 No source rows had malformed fields or invalid prices; prices range from $2.68733333 to $6.399. Repeated OPIS IDs with different names/addresses are retained. Counts refer to records, not independently verified physical sites.
 
-`prepare_fuel_data` normalizes whitespace, validates the schema/identifiers/finite positive prices, filters all non-U.S. state codes, and submits one 7,505-address Census batch (below the 10,000 limit). Highway-exit addresses explain the low address-level match rate. Unmatched addresses use an exact normalized city/state lookup into locally downloaded GeoNames postal data. Centroids average unique postal coordinates; city footprints exceeding a 10-mile radius are excluded. No fuzzy city guesses or invented coordinates are used. **A city centroid is not an exact station location.** API warnings, map labels, and access allowances expose this limitation; the allowance cannot guarantee real road access.
+The source contains no latitude/longitude. `prepare_fuel_data` validates fields, prices and U.S. states, then submits one 7,505-address Census batch. Query normalization preserves highway identifiers and removes exit numbers only when named roads establish a junction; original descriptions remain unchanged. Matches must preserve city, street number and road identifiers: Census can otherwise interpret an exit as a house number or return a different city's road. Normalization increased validated matches from 144 to 154; see the audit below.
+
+Non-standard highway addresses fall back to an exact normalized city/state lookup in local GeoNames postal data. Centroids average unique postal coordinates; footprints exceeding a 10-mile radius are excluded. Located records are **2.20% Census and 97.80% approximate centroids**. Coordinate quality affects corridor selection, access budgets and optimization. Each stop exposes `geocoding_source`, `location_is_approximate`, `detour_is_estimated` and `detour_basis`; centroid stops also expose `centroid_to_route_miles`. All road access is estimated, including Census matches. **Centroid positions are city-level candidates: exact truck-stop proximity and road-access distance cannot be guaranteed.**
 
 Generated statistics and input/result checksums are in `data/preprocessing_stats.json`; exclusions are in `data/fuel_stations_unmatched.csv`. Cached upstream downloads live in ignored `.cache/preprocessing/`. Repeated preparation reuses these downloads and produces deterministic content. `--refresh` explicitly downloads again; `--offline` requires both cached sources and makes zero network calls. Failed/incomplete batch responses fail visibly rather than silently dropping rows.
 
@@ -76,6 +78,7 @@ Optional rebuild of the committed dataset:
 ```bash
 python manage.py prepare_fuel_data
 python manage.py prepare_fuel_data --offline
+python manage.py audit_fuel_addresses  # Cached response classification; no network calls.
 ```
 
 | Variable | Purpose/default |
@@ -85,8 +88,11 @@ python manage.py prepare_fuel_data --offline
 | `DJANGO_DEBUG` | `false`; local development may enable it |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1`; Render host is appended automatically |
 | `DJANGO_SECURE_SSL_REDIRECT` | `false` locally; `true` behind Render HTTPS |
-| `ROUTE_CORRIDOR_MILES` | 15-mile geographic candidate corridor |
-| `MAX_DETOUR_MILES` | 20-mile maximum estimated round-trip access |
+| `ROUTE_CORRIDOR_MILES` | 15-mile Census candidate corridor |
+| `MAX_DETOUR_MILES` | 20-mile Census estimated round-trip access cap |
+| `CENTROID_CORRIDOR_MILES` | 35-mile approximate city candidate corridor |
+| `CENTROID_MAX_DETOUR_MILES` | 110-mile round-trip centroid uncertainty budget cap |
+| `CENTROID_STOP_PENALTY_USD` | $15 selection penalty per centroid stop; not fuel spend |
 | `STATION_DATA_PATH` | Optional processed CSV path override |
 
 HTTP clients use direct connections rather than inherited proxy settings. Five-second connect and 30-second read timeouts bound routing calls; Census preprocessing allows ten minutes. There are no automatic retries, preventing hidden quota multiplication. Never put keys in request URLs, responses, collection files, or map HTML.
@@ -107,9 +113,9 @@ Example **excerpt from a real Dallas–Los Angeles response** (complete geometry
 {
   "route": {"distance_miles": 1442.68, "duration_hours": 22.06},
   "fuel": {
-    "estimated_driving_miles_including_detours": 1486.55,
-    "estimated_gallons_consumed": 148.6547,
-    "estimated_fuel_cost_usd": 424.94,
+    "estimated_driving_miles_including_detours": 1475.48,
+    "estimated_gallons_consumed": 147.5483,
+    "estimated_fuel_cost_usd": 426.77,
     "estimated_arrival_fuel_gallons": 0,
     "longest_leg_miles": 474.2284
   },
@@ -121,9 +127,9 @@ Swagger: `/api/docs/`. OpenAPI: `/api/schema/`. Health: `/health/` reports data 
 
 ## Calls, caching, and performance
 
-A completely cold successful request uses **two endpoint geocodes plus one directions request**, and **zero station calls**. Geocodes cache for 24 hours, directions/plans for one hour. Repeated route requests make zero provider calls. Dataset hash and corridor settings participate in plan keys. No raw CSV is parsed per request. Cache files are trusted local application files, never public static content.
+A completely cold successful request uses **two endpoint geocodes plus one directions request**, and **zero station calls**. Geocodes cache for 24 hours, directions/plans for one hour. Repeated route requests make zero provider calls. Dataset hash, planning policy version, corridors and quality penalty participate in plan keys; upstream caches remain reusable after a policy change. No raw CSV is parsed per request. Cache files are trusted local application files, never public static content.
 
-Spatial lookup avoids scanning unrelated stations. Candidate projection is proportional to route geometry and corridor stations; itinerary DP has worst-case quadratic candidate complexity with a 500-mile early cutoff. Final Docker/Gunicorn Dallas–Los Angeles smoke timing: **3.43 seconds cold, 0.035 seconds cached**, including HTTP/serialization; these are individual observed samples, not throughput guarantees. Free Render cold starts and provider latency differ.
+Spatial lookup avoids scanning unrelated stations. Candidate projection is proportional to route geometry and corridor stations; itinerary DP has worst-case quadratic candidate complexity with a 500-mile early cutoff. Hardened Docker/Gunicorn Dallas–Los Angeles timing: **4.03 seconds first request, 0.040 seconds cached**, including HTTP/serialization; these are individual samples, not throughput guarantees. Free Render cold starts and provider latency differ.
 
 ## Tests and verification
 
