@@ -27,6 +27,7 @@ export default function App() {
   const reduce = !!useReducedMotion()
   const controller = useRef<AbortController | null>(null)
   const timeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const focusPlannerAfterReset = useRef(false)
   const shell = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLInputElement>(null)
   const resultHeading = useRef<HTMLHeadingElement>(null)
@@ -43,6 +44,12 @@ export default function App() {
     },
     [],
   )
+  useEffect(() => {
+    if (!plan && focusPlannerAfterReset.current) {
+      focusPlannerAfterReset.current = false
+      input.current?.focus()
+    }
+  }, [plan])
   useEffect(() => {
     if (!plan || !revealing) return
     // GSAP owns the geographic wrapper; Motion owns the content inside it.
@@ -129,6 +136,7 @@ export default function App() {
   }
   function reset() {
     controller.current?.abort()
+    focusPlannerAfterReset.current = true
     setPlan(null)
     setMapReady(false)
     setRevealing(false)
@@ -138,7 +146,6 @@ export default function App() {
     setError('')
     setLoading(false)
     window.scrollTo({ top: 0, behavior: 'instant' })
-    requestAnimationFrame(() => input.current?.focus())
   }
   return (
     <div ref={shell} className={plan ? 'app has-route' : 'app'}>
