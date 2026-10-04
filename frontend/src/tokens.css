@@ -1,0 +1,30 @@
+/* RouteFuel / Road atlas. Shared by the shell, controls and itinerary. */
+:root {
+  --paper: #f4f1e9;
+  --surface: #fbfaf6;
+  --ink: #172d3b;
+  --muted: #58666c;
+  --line: #c9cec9;
+  --route: #b74421;
+  --route-bright: #d04b24;
+  --route-tint: #f2e3d9;
+  --success: #33574d;
+  --error: #9a321f;
+  --font-body: 'IBM Plex Sans', Arial, sans-serif;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-data: 'SFMono-Regular', Consolas, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --radius: 2px;
+  --rule: 1px solid var(--line);
+  --control-height: 52px;
+  --duration-fast: 160ms;
+  --duration-ui: 240ms;
+  --duration-scene: 650ms;
+  --ease-ui: cubic-bezier(0.2, 0.7, 0.2, 1);
+}

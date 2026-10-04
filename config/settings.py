@@ -73,3 +73,7 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "DESCRIPTION": "Cost-aware US driving routes using preprocessed fuel prices.",
 }
+
+# Optional compiled UI. Existing API deployments remain independently usable.
+FRONTEND_DIST = BASE_DIR / "frontend" / "dist"
+STATICFILES_DIRS = [("routefuel", FRONTEND_DIST)] if FRONTEND_DIST.is_dir() else []

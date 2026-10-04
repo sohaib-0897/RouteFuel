@@ -1,4 +1,4 @@
-# Spotter Fuel Route API
+# RouteFuel · Spotter Fuel Route API
 
 Django API for a U.S. driving route, cost-aware fuel purchases, and a browser map. Vehicle assumptions: **500-mile range, 10 MPG, 50-gallon tank**. The employer's original CSV is preserved byte-for-byte.
 
@@ -20,6 +20,47 @@ flowchart LR
 ```
 
 Responsibilities are separated in `routes/routing.py`, `stations.py`, `optimization.py`, `service.py`, and `preprocessing.py`. SQLite is configured but request handling needs no database tables or migrations. The shared filesystem cache works across Gunicorn workers on one instance; station objects and the spatial index are loaded once per worker, with reload on dataset replacement.
+
+## RouteFuel interface
+
+![RouteFuel desktop route planner](docs/screenshots/routefuel-desktop.png)
+
+The frontend lives in `frontend/`: Vite, React, TypeScript and Tailwind, with a self-hosted road-atlas visual system (warm paper, navy and route orange). Django remains the authority for all geometry, stops, purchases and costs. The protected backend checkpoint is `8bb8943`, tagged locally as `backend-verified-8bb8943`.
+
+`src/App.tsx` owns request/result state and the itinerary; `src/api.ts` validates the API response; `components/Globe.tsx` adapts Aceternity's ThreeGlobe overview; `components/RouteMap.tsx` renders the exact GeoJSON and ordered stops. `tokens.css` defines shared design tokens. Tests and the recorded response fixture are under `src/test/`; real WebGL browser tests are under `e2e/`.
+
+### Local UI development
+
+Use Node 22 and the existing Python environment. Start Django on port 8001 (or use the assessment Docker container), then run:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Open `http://127.0.0.1:5187/static/routefuel/`. Vite proxies `/api` and `/health` to Django on port 8001. The proxy avoids CORS configuration. The frontend defaults to relative API URLs in production; `VITE_API_BASE_URL` is optional. `VITE_GITHUB_URL` is an optional real repository URL; the link is omitted until configured. Never place `ORS_API_KEY` in a Vite environment variable.
+
+### Production build and verification
+
+```bash
+cd frontend
+npm ci
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npx playwright install chromium
+npm run e2e
+```
+
+The Docker multi-stage build runs `npm ci` and `npm run build` in Node, then copies only the compiled assets into the Python runtime. Django serves the shell at `/`; WhiteNoise serves `/static/routefuel/`. Swagger, the route API, health and the existing Leaflet fallback map keep their paths. A backend-only checkout without a UI build still serves the API; only `/` reports that the UI needs building.
+
+The **globe arc is cinematic only**. Actual driving geometry comes from Django's returned GeoJSON. MapLibre uses keyless OpenFreeMap Positron tiles with visible OpenStreetMap/OpenMapTiles attribution. Tile requests go to the public basemap service; all route-planning requests go only to Django. Map markers follow backend sequence and route progress. Centroid markers and access budgets are labeled approximate; origin fuel is disclosed as a price reference, not an extra stop.
+
+GSAP owns the brief geographic reveal and optional desktop ScrollTrigger walkthrough. Motion owns component transitions; CSS owns the restrained shine, cradle and switch. Native scrolling is retained; Lenis is intentionally omitted. Globe and map are loaded separately and disposed when hidden. Keyboard controls, focus states, live request status, textual itinerary and reduced-motion behavior are included. No global itinerary-optimality claim is added by the UI.
+
+See [design decisions](docs/ROUTEFUEL_DESIGN.md), [frontend source credits](frontend/THIRD_PARTY.md), and [integration verification](docs/FRONTEND_VERIFICATION.md). Screenshot artifacts include desktop, mobile, error, loading, reduced-motion and station-detail states.
 
 ## Fuel model and optimization
 
@@ -153,7 +194,7 @@ docker run --env-file .env -e DJANGO_DEBUG=false -p 8000:8000 spotter-fuel-route
 
 The image runs as an unprivileged user with Gunicorn (two workers/two threads). Static files are collected at build time and served by WhiteNoise. Production startup never geocodes stations. No volume or database service is necessary for this assessment.
 
-On Render, connect the GitHub repository and create a Blueprint from `render.yaml`. Supply `ORS_API_KEY`; the Blueprint generates the Django secret (or replace it with your own). It configures Python, Gunicorn, static collection, health checks, host allowlisting, and HTTPS/HSTS. No secret is embedded in the Blueprint. [Render Blueprint reference](https://render.com/docs/blueprint-spec). File cache and SQLite are ephemeral on the free service, which is acceptable here because processed data is committed and no durable user state exists. Multiple instances would require a shared cache such as Redis.
+On Render, connect the GitHub repository and create a Blueprint from `render.yaml`. Supply `ORS_API_KEY`; the Blueprint generates the Django secret (or replace it with your own). It builds the combined Node/Python Docker image and configures Gunicorn, static collection, health checks, host allowlisting, and HTTPS/HSTS. No secret is embedded in the Blueprint. [Render Blueprint reference](https://render.com/docs/blueprint-spec). File cache and SQLite are ephemeral on the free service, which is acceptable here because processed data is committed and no durable user state exists. Multiple instances would require a shared cache such as Redis.
 
 ## Known limits and demo
 
