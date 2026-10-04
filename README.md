@@ -27,7 +27,7 @@ Responsibilities are separated in `routes/routing.py`, `stations.py`, `optimizat
 
 The frontend lives in `frontend/`: Vite, React, TypeScript and Tailwind, with a self-hosted road-atlas visual system (warm paper, navy and route orange). Django remains the authority for all geometry, stops, purchases and costs. The protected backend checkpoint is `8bb8943`, tagged locally as `backend-verified-8bb8943`.
 
-`src/App.tsx` owns request/result state and the itinerary; `src/api.ts` validates the API response; `components/Globe.tsx` adapts Aceternity's ThreeGlobe overview; `components/RouteMap.tsx` renders the exact GeoJSON and ordered stops. `tokens.css` defines shared design tokens. Tests and the recorded response fixture are under `src/test/`; real WebGL browser tests are under `e2e/`.
+`src/App.tsx` owns request/result state and the itinerary; `src/api.ts` validates API responses; `components/LocationSearch.tsx` supplies debounced, keyboard-accessible U.S. place search; `components/Globe.tsx` adapts Aceternity's ThreeGlobe overview; `components/RouteMap.tsx` renders the exact GeoJSON and ordered stops. `tokens.css` defines shared design tokens, also read by the WebGL/map layers through `theme.ts`. Tests and the recorded response fixture are under `src/test/`; real WebGL browser tests are under `e2e/`. `docs/screenshots/` contains selected reviewed captures.
 
 ### Local UI development
 
@@ -40,6 +40,8 @@ npm run dev
 ```
 
 Open `http://127.0.0.1:5187/static/routefuel/`. Vite proxies `/api` and `/health` to Django on port 8001. The proxy avoids CORS configuration. The frontend defaults to relative API URLs in production; `VITE_API_BASE_URL` is optional. `VITE_GITHUB_URL` is an optional real repository URL; the link is omitted until configured. Never place `ORS_API_KEY` in a Vite environment variable.
+
+Place search uses the additive `GET /api/v1/locations/?q=Dallas` endpoint in `routes/locations.py`. Start the current Django code (or an updated Docker image) on port 8001 for autocomplete; an older backend image only supports route POST. Queries must contain 2–120 characters. At most six U.S. places return `{id, name, context, query}`. Selecting a result sends its `query` to the unchanged route API. Searches are cached independently for one hour and use the existing 60/min anonymous throttle. Provider errors remain visible and retryable; full U.S. queries can still be submitted manually.
 
 ### Production build and verification
 

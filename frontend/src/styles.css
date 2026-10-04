@@ -174,10 +174,10 @@ svg {
 }
 .hero-globe {
   position: absolute;
-  width: min(76vw, 1150px);
-  height: min(76vw, 1150px);
-  left: 68%;
-  top: 46%;
+  width: min(66vw, 1040px);
+  height: min(66vw, 1040px);
+  left: 73%;
+  top: 43%;
   transform: translate(-50%, -50%);
   z-index: -1;
 }
@@ -219,7 +219,7 @@ svg {
   color: var(--muted);
 }
 .floating-copy {
-  animation: float-copy 10s ease-in-out infinite;
+  position: relative;
 }
 .hero h1 {
   font-family: var(--font-display);
@@ -264,13 +264,119 @@ svg {
   max-width: 800px;
   text-align: left;
 }
-.route-form label {
+.location-search {
   position: relative;
   display: block;
   min-width: 0;
   padding-left: 29px;
   border-bottom: 1px solid var(--ink);
   padding-bottom: 13px;
+  z-index: 2;
+}
+.location-search:focus-within {
+  z-index: 4;
+  border-color: var(--route);
+}
+.location-search label {
+  display: block;
+}
+.location-search input {
+  padding-right: 38px;
+}
+.location-clear {
+  position: absolute;
+  right: 0;
+  bottom: 6px;
+  width: 40px;
+  height: 40px;
+  font-size: 23px;
+  color: var(--muted);
+}
+.location-dropdown {
+  position: fixed;
+  z-index: 30;
+  border: var(--rule);
+  background: var(--surface);
+  box-shadow: 0 8px 24px #172d3b12;
+  border-radius: var(--radius);
+  pointer-events: auto;
+  overflow-y: auto;
+}
+.search-heading {
+  padding: 12px 16px;
+  border-bottom: var(--rule);
+  font-family: var(--font-data);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.location-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  max-height: 264px;
+  overflow-y: auto;
+}
+.location-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  min-height: 62px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+.location-option.active {
+  background: var(--route-tint);
+  border-left-color: var(--route);
+}
+.location-option svg {
+  width: 18px;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+.location-option > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+}
+.location-option strong {
+  display: block;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.location-option small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.option-enter {
+  color: var(--route);
+  opacity: 0;
+}
+.active .option-enter {
+  opacity: 1;
+}
+.search-status {
+  border-top: var(--rule);
+  padding: 10px 16px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.search-retry {
+  padding: 4px 16px 12px;
+  color: var(--route);
+  font-size: 12px;
+  text-decoration: underline;
+}
+.map-preparing {
+  color: var(--muted);
+  font-size: 12px;
 }
 .endpoint-letter {
   position: absolute;
@@ -304,10 +410,6 @@ svg {
   color: #53626a;
   font-weight: 400;
   opacity: 1;
-}
-.route-form label:focus-within {
-  border-bottom: 2px solid var(--route);
-  padding-bottom: 12px;
 }
 .plan-button {
   height: var(--control-height);
@@ -871,7 +973,7 @@ svg {
   overflow-wrap: anywhere;
 }
 .station-address {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   line-height: 1.6;
   overflow-wrap: anywhere;
@@ -913,7 +1015,7 @@ svg {
   color: var(--ink);
 }
 .accuracy {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink);
   margin-top: 16px;
   display: flex;
@@ -925,7 +1027,7 @@ svg {
   color: var(--route);
 }
 .detour {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.8;
   color: var(--muted);
   margin-top: 2px;
@@ -1042,17 +1144,8 @@ svg {
   border: 1px solid #9da9a3;
 }
 .maplibregl-ctrl-group button {
-  min-width: 32px;
-  min-height: 32px;
-}
-@keyframes float-copy {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
+  min-width: 44px;
+  min-height: 44px;
 }
 @keyframes shine {
   0%,
@@ -1103,10 +1196,10 @@ svg {
     max-width: 850px;
   }
   .hero-globe {
-    left: 69%;
-    top: 47%;
-    width: 1260px;
-    height: 1260px;
+    left: 72%;
+    top: 44%;
+    width: 1160px;
+    height: 1160px;
   }
   .hero h1 > span {
     margin-left: 13vw;
@@ -1226,7 +1319,7 @@ svg {
     margin-top: 36px;
     max-width: 590px;
   }
-  .route-form label {
+  .location-search {
     padding-bottom: 11px;
   }
   .route-form input {
@@ -1391,7 +1484,7 @@ svg {
     gap: 18px;
     margin-top: 28px;
   }
-  .route-form label {
+  .location-search {
     padding-left: 26px;
     padding-bottom: 8px;
   }
@@ -1406,9 +1499,6 @@ svg {
   .route-form input {
     font-size: 17px;
     height: 27px;
-  }
-  .route-form label:focus-within {
-    padding-bottom: 7px;
   }
   .plan-button {
     grid-column: auto;

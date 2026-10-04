@@ -2,6 +2,31 @@
 export const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 export const apiUrl = (path: string) => API_BASE + path
 
+export interface Place {
+  id: string
+  name: string
+  context: string
+  query: string
+}
+export async function searchLocations(query: string, signal: AbortSignal): Promise<Place[]> {
+  const response = await fetch(apiUrl('/api/v1/locations/?q=' + encodeURIComponent(query)), {
+    signal,
+  })
+  const data: unknown = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(errorMessage(data, response.status))
+  if (
+    !object(data) ||
+    !Array.isArray(data.results) ||
+    !data.results.every(
+      (place) =>
+        object(place) &&
+        ['id', 'name', 'context', 'query'].every((key) => typeof place[key] === 'string'),
+    )
+  )
+    throw new Error('Invalid place search response.')
+  return data.results as Place[]
+}
+
 export function validateLocations(start: string, finish: string) {
   if (!start.trim()) return 'Enter a starting location.'
   if (!finish.trim()) return 'Enter a destination.'

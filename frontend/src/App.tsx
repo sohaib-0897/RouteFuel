@@ -6,6 +6,7 @@ import { apiUrl, requestRoute, validateLocations } from './api'
 import { money, number, orderedStops, type RoutePlan, type ViewMode } from './types'
 import { Arrow, ReadyStatus, RouteLoader, ViewSwitch } from './components/Controls'
 import WebGLBoundary from './components/WebGLBoundary'
+import LocationSearch from './components/LocationSearch'
 
 const Globe = lazy(() => import('./components/Globe'))
 const loadRouteMap = () => import('./components/RouteMap')
@@ -20,6 +21,7 @@ export default function App() {
   const [plan, setPlan] = useState<RoutePlan | null>(null)
   const [mode, setMode] = useState<ViewMode>('globe')
   const [revealing, setRevealing] = useState(false)
+  const [mapReady, setMapReady] = useState(false)
   const [active, setActive] = useState<number | null>(null)
   const [walkthrough, setWalkthrough] = useState(false)
   const reduce = !!useReducedMotion()
@@ -30,6 +32,7 @@ export default function App() {
   const resultHeading = useRef<HTMLHeadingElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const stops = plan ? orderedStops(plan) : []
+  const mapDidDraw = useCallback(() => setMapReady(true), [])
   useEffect(() => {
     if (loading) void loadRouteMap().catch(() => undefined)
   }, [loading])
@@ -54,7 +57,7 @@ export default function App() {
       if (reduce) timeline.to(stage.current, { opacity: 1, duration: 0 })
       else
         timeline
-          .to(stage.current, { scale: 1.08, duration: 1.05, ease: 'power2.inOut' })
+          .to(stage.current, { scale: 1.04, duration: 1.7, ease: 'power2.inOut' })
           .to(stage.current, { opacity: 0, duration: 0.25 })
     }, shell)
     return () => ctx.revert()
@@ -103,6 +106,7 @@ export default function App() {
       const result = await requestRoute(start, finish, request.signal)
       if (request.signal.aborted) return
       setPlan(result)
+      setMapReady(false)
       setActive(null)
       setMode(reduce ? 'map' : 'globe')
       setRevealing(!reduce)
@@ -126,6 +130,7 @@ export default function App() {
   function reset() {
     controller.current?.abort()
     setPlan(null)
+    setMapReady(false)
     setRevealing(false)
     setMode('globe')
     setActive(null)
@@ -168,7 +173,10 @@ export default function App() {
               <strong>ACROSS THE UNITED STATES</strong>
             </div>
             <p className="globe-caption">
-              GEOGRAPHIC OVERVIEW<span>{plan ? 'Overview arc only · not the driving route' : 'Drag to explore the globe ↗'}</span>
+              GEOGRAPHIC OVERVIEW
+              <span>
+                {plan ? 'Overview arc only · not the driving route' : 'Drag to explore the globe ↗'}
+              </span>
             </p>
             <div className="hero-globe" ref={stage}>
               <WebGLBoundary fallback={<div className="globe-fallback" />}>
@@ -195,41 +203,23 @@ export default function App() {
                 aria-label="Plan a fuel route"
                 noValidate
               >
-                <label>
-                  <span className="endpoint-letter" aria-hidden="true">
-                    A
-                  </span>
-                  <span>FROM</span>
-                  <input
-                    ref={input}
-                    name="start"
-                    autoComplete="off"
-                    placeholder="Dallas, TX"
-                    value={start}
-                    maxLength={300}
-                    onChange={(e) => setStart(e.target.value)}
-                    disabled={loading || revealing}
-                    aria-invalid={!!error}
-                    aria-describedby={error ? 'form-error' : undefined}
-                  />
-                </label>
-                <label>
-                  <span className="endpoint-letter" aria-hidden="true">
-                    B
-                  </span>
-                  <span>TO</span>
-                  <input
-                    name="finish"
-                    autoComplete="off"
-                    placeholder="Los Angeles, CA"
-                    value={finish}
-                    maxLength={300}
-                    onChange={(e) => setFinish(e.target.value)}
-                    disabled={loading || revealing}
-                    aria-invalid={!!error}
-                    aria-describedby={error ? 'form-error' : undefined}
-                  />
-                </label>
+                <LocationSearch
+                  label="FROM"
+                  letter="A"
+                  value={start}
+                  onChange={setStart}
+                  inputRef={input}
+                  disabled={loading || revealing}
+                  invalid={!!error}
+                />
+                <LocationSearch
+                  label="TO"
+                  letter="B"
+                  value={finish}
+                  onChange={setFinish}
+                  disabled={loading || revealing}
+                  invalid={!!error}
+                />
                 <motion.button
                   type="submit"
                   className="plan-button"
@@ -264,7 +254,7 @@ export default function App() {
                     </motion.div>
                   ) : (
                     <p className="form-note" key="note">
-                      Enter two U.S. locations to begin.
+                      Search U.S. cities, airports or addresses.
                     </p>
                   )}
                 </AnimatePresence>
@@ -373,15 +363,22 @@ export default function App() {
                           active={active}
                           onSelect={chooseStop}
                           reduced={reduce}
+                          onReady={mapDidDraw}
                         />
                       </Suspense>
                     </WebGLBoundary>
                   )}
                 </div>
                 <div className="map-caption">
-                  <ReadyStatus />
+                  {mapReady ? (
+                    <ReadyStatus />
+                  ) : (
+                    <span role="status" className="map-preparing">
+                      Drawing the road route…
+                    </span>
+                  )}
                   <span>
-                    Road geometry from Django ·{' '}
+                    Provider road route ·{' '}
                     <a href={apiUrl(plan.map_url)} target="_blank" rel="noreferrer">
                       Open fallback map <Arrow diagonal />
                     </a>
@@ -527,7 +524,7 @@ export default function App() {
           ROUTEFUEL <span className="muted">/</span> ROUTE & FUEL PLANNING
         </span>
         <span>
-          DJANGO + GEOSPATIAL ROUTING <span className="muted">·</span> ASSESSMENT EDITION
+          U.S. ROAD ATLAS <span className="muted">·</span> ESTIMATED FUEL PURCHASES
         </span>
       </footer>
     </div>

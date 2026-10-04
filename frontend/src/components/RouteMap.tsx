@@ -11,6 +11,7 @@ import {
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { apiUrl } from '../api'
+import { themeColor } from '../theme'
 import { money, number, orderedStops, type FuelStop, type RoutePlan } from '../types'
 setWorkerUrl(workerUrl)
 const emptyStyle: StyleSpecification = {
@@ -48,11 +49,13 @@ export default function RouteMap({
   active,
   onSelect,
   reduced,
+  onReady,
 }: {
   plan: RoutePlan
   active: number | null
   onSelect: (n: number | null) => void
   reduced: boolean
+  onReady: () => void
 }) {
   const container = useRef<HTMLDivElement>(null)
   const instance = useRef<Map | null>(null)
@@ -125,21 +128,21 @@ export default function RouteMap({
         type: 'line',
         source: 'driving-route',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#f4f1e9', 'line-opacity': 0.9, 'line-width': 7 },
+        paint: { 'line-color': themeColor('paper'), 'line-opacity': 0.9, 'line-width': 7 },
       })
       map.addLayer({
         id: 'road-route',
         type: 'line',
         source: 'driving-route',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#d04b24', 'line-width': 3 },
+        paint: { 'line-color': themeColor('route-bright'), 'line-width': 3 },
       })
       map.addLayer({
         id: 'active-section',
         type: 'line',
         source: 'driving-route',
         layout: { 'line-join': 'round', 'line-cap': 'round', visibility: 'none' },
-        paint: { 'line-color': '#172d3b', 'line-width': 5 },
+        paint: { 'line-color': themeColor('ink'), 'line-width': 5 },
       })
       map.fitBounds(bounds, {
         padding: window.innerWidth < 600 ? 45 : 65,
@@ -195,7 +198,7 @@ export default function RouteMap({
         map.setPaintProperty('road-route', 'line-gradient', [
           'step',
           ['line-progress'],
-          '#d04b24',
+          themeColor('route-bright'),
           Math.max(progress, 0.00001),
           'rgba(208,75,36,0)',
         ])
@@ -208,6 +211,7 @@ export default function RouteMap({
         else {
           map.setPaintProperty('road-route', 'line-gradient', undefined)
           setDrawn(true)
+          onReady()
         }
       }
       frame = requestAnimationFrame(draw)
@@ -243,7 +247,7 @@ export default function RouteMap({
       map.remove()
       instance.current = null
     }
-  }, [plan, reduced, onSelect])
+  }, [plan, reduced, onSelect, onReady])
   useEffect(() => {
     const map = instance.current
     if (!map || !drawn) return
@@ -266,7 +270,7 @@ export default function RouteMap({
       map.setPaintProperty('active-section', 'line-gradient', [
         'case',
         ['all', ['>=', ['line-progress'], previous], ['<=', ['line-progress'], progress]],
-        '#172d3b',
+        themeColor('ink'),
         'rgba(23,45,59,0)',
       ])
     }

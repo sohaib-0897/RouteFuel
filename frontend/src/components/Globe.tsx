@@ -8,6 +8,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import ThreeGlobe from 'three-globe'
 import gsap from 'gsap'
 import type { RoutePlan } from '../types'
+import { themeColor } from '../theme'
 export default function Globe({ plan, reduced }: { plan: RoutePlan | null; reduced: boolean }) {
   const host = useRef<HTMLDivElement>(null)
   const [failed, setFailed] = useState(false)
@@ -37,10 +38,10 @@ export default function Globe({ plan, reduced }: { plan: RoutePlan | null; reduc
       .atmosphereAltitude(0.055)
       .hexPolygonResolution(3)
       .hexPolygonMargin(0.65)
-      .hexPolygonColor(() => '#68808a')
+      .hexPolygonColor(() => themeColor('globe-land'))
     const material = globe.globeMaterial() as THREE.MeshPhongMaterial
-    material.color = new THREE.Color('#e0e0d3')
-    material.emissive = new THREE.Color('#e0e0d3')
+    material.color = new THREE.Color(themeColor('globe-water'))
+    material.emissive = new THREE.Color(themeColor('globe-water'))
     material.emissiveIntensity = 0.2
     material.shininess = 2
     scene.add(globe, new THREE.AmbientLight('#ffffff', 1.1))
@@ -100,12 +101,12 @@ export default function Globe({ plan, reduced }: { plan: RoutePlan | null; reduc
         { lat: plan.finish.latitude, lng: plan.finish.longitude },
       ]
       globe
-        .pointColor(() => '#b74421')
+        .pointColor(() => themeColor('route'))
         .pointRadius(0.65)
         .pointAltitude(0.01)
         .pointsMerge(true)
       globe
-        .ringColor(() => '#b74421')
+        .ringColor(() => themeColor('route'))
         .ringMaxRadius(3)
         .ringPropagationSpeed(2)
         .ringRepeatPeriod(1200)
@@ -129,7 +130,7 @@ export default function Globe({ plan, reduced }: { plan: RoutePlan | null; reduc
                 endLng: plan.finish.longitude,
               },
             ])
-            .arcColor(() => '#b74421')
+            .arcColor(() => themeColor('route'))
             .arcAltitude(0.12)
             .arcStroke(0.45)
             .arcDashLength(reduced ? 1 : 0)

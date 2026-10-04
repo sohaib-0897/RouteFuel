@@ -25,7 +25,7 @@ export function RouteLoader() {
           {['Finding your route', 'Locating viable fuel stops', 'Optimizing fuel cost'][stage]}
         </motion.span>
       </AnimatePresence>
-      <span className="processing-note">Django is calculating your plan</span>
+      <span className="processing-note">Building your road & fuel itinerary</span>
     </div>
   )
 }

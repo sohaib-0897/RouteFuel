@@ -7,6 +7,34 @@ const fixture = JSON.parse(
 import { mkdirSync } from 'node:fs'
 const folder = '../artifacts/routefuel-redesign'
 mkdirSync(folder, { recursive: true })
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/v1/locations/**', (route) => {
+    const query = new URL(route.request().url()).searchParams.get('q') || ''
+    const dallas = /dall/i.test(query)
+    return route.fulfill({
+      json: {
+        results: dallas
+          ? [
+              { id: 'dallas', name: 'Dallas', context: 'Dallas, Texas', query: 'Dallas, TX' },
+              {
+                id: 'airport',
+                name: 'Dallas Love Field',
+                context: 'Dallas, Texas',
+                query: 'Dallas Love Field, Dallas, TX',
+              },
+            ]
+          : [
+              {
+                id: 'la',
+                name: 'Los Angeles',
+                context: 'Los Angeles, California',
+                query: 'Los Angeles, CA',
+              },
+            ],
+      },
+    })
+  })
+})
 test('real WebGL route experience, keyboard, errors, and mobile layouts', async ({ page }) => {
   test.setTimeout(180000)
   const errors: string[] = []
@@ -16,7 +44,9 @@ test('real WebGL route experience, keyboard, errors, and mobile layouts', async 
   })
   let requests = 0
   let releaseResponse!: () => void
-  const responseGate = new Promise<void>((resolve) => { releaseResponse = resolve })
+  const responseGate = new Promise<void>((resolve) => {
+    releaseResponse = resolve
+  })
   await page.route('**/api/v1/route/', async (route) => {
     requests++
     expect(route.request().method()).toBe('POST')
@@ -46,10 +76,17 @@ test('real WebGL route experience, keyboard, errors, and mobile layouts', async 
   await page.getByRole('button', { name: 'PLAN ROUTE' }).click()
   await expect(page.getByRole('alert')).toContainText('Enter a starting location')
   await page.screenshot({ path: folder + '/validation-error.png' })
-  await page.getByRole('textbox', { name: 'FROM' }).fill('Dallas, TX')
-  await page.getByRole('textbox', { name: 'TO' }).fill('Los Angeles, CA')
-  await page.getByRole('textbox', { name: 'TO' }).press('Enter')
-  await expect(page.getByRole('status')).toContainText(/Finding your route|Locating viable fuel stops|Optimizing fuel cost/)
+  await page.getByRole('combobox', { name: 'FROM' }).fill('Dallas, TX')
+  await expect(page.getByRole('option')).toHaveCount(2)
+  await page.getByRole('combobox', { name: 'FROM' }).press('ArrowDown')
+  await page.getByRole('combobox', { name: 'FROM' }).press('Enter')
+  await page.getByRole('combobox', { name: 'TO' }).fill('Los Angeles, CA')
+  await expect(page.getByRole('option')).toHaveCount(1)
+  await page.getByRole('combobox', { name: 'TO' }).press('Enter')
+  await page.getByRole('button', { name: 'PLAN ROUTE' }).click()
+  await expect(page.getByRole('status')).toContainText(
+    /Finding your route|Locating viable fuel stops|Optimizing fuel cost/,
+  )
   await page.screenshot({ path: folder + '/loading.png' })
   releaseResponse()
   await expect(page.getByLabel('Route summary')).toContainText('$426.77')
@@ -92,7 +129,7 @@ test('real WebGL route experience, keyboard, errors, and mobile layouts', async 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   }
   await page.getByRole('button', { name: /Plan another route/ }).click()
-  await expect(page.getByRole('textbox', { name: 'FROM' })).toHaveValue('Dallas, TX')
+  await expect(page.getByRole('combobox', { name: 'FROM' })).toHaveValue('Dallas, TX')
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.getByRole('button', { name: 'PLAN ROUTE' }).click()
   await expect(page.getByTestId('route-map')).toHaveAttribute('data-drawn', 'true')
@@ -116,8 +153,8 @@ test('service errors keep inputs and allow retry', async ({ page }) => {
       : route.fulfill({ json: fixture }),
   )
   await page.goto('/static/routefuel/')
-  await page.getByRole('textbox', { name: 'FROM' }).fill('Dallas, TX')
-  await page.getByRole('textbox', { name: 'TO' }).fill('Los Angeles, CA')
+  await page.getByRole('combobox', { name: 'FROM' }).fill('Dallas, TX')
+  await page.getByRole('combobox', { name: 'TO' }).fill('Los Angeles, CA')
   await page.getByRole('button', { name: 'PLAN ROUTE' }).click()
   await expect(page.getByRole('alert')).toContainText('routing service is unavailable')
   await page.screenshot({ path: folder + '/service-error.png' })
@@ -128,23 +165,53 @@ test('service errors keep inputs and allow retry', async ({ page }) => {
 test('mobile reduced motion, long station names and visible keyboard focus', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  const longFixture=structuredClone(fixture)
-  longFixture.fuel_stops[0].name='A VERY LONG TRUCKSTOP NAME FOR MOBILE LAYOUT AND ACCESSIBILITY VERIFICATION'
-  await page.route('**/api/v1/route/',route=>route.fulfill({json:longFixture}))
+  const longFixture = structuredClone(fixture)
+  longFixture.fuel_stops[0].name =
+    'A VERY LONG TRUCKSTOP NAME FOR MOBILE LAYOUT AND ACCESSIBILITY VERIFICATION'
+  await page.route('**/api/v1/route/', (route) => route.fulfill({ json: longFixture }))
   await page.goto('/static/routefuel/')
-  const start=page.getByRole('textbox',{name:'FROM'})
+  const start = page.getByRole('combobox', { name: 'FROM' })
   await start.focus()
-  await page.screenshot({path:folder+'/keyboard-focus.png'})
-  const heroAudit=await new AxeBuilder({page}).analyze()
+  await page.screenshot({ path: folder + '/keyboard-focus.png' })
+  const heroAudit = await new AxeBuilder({ page }).analyze()
   expect(heroAudit.violations).toEqual([])
   await start.fill('Dallas, TX')
-  await page.getByRole('textbox',{name:'TO'}).fill('Los Angeles, CA')
-  await page.getByRole('textbox',{name:'TO'}).press('Enter')
-  await expect(page.getByTestId('route-map')).toHaveAttribute('data-drawn','true')
+  await page.getByRole('combobox', { name: 'TO' }).fill('Los Angeles, CA')
+  await page.getByRole('combobox', { name: 'TO' }).press('Escape')
+  await page.getByRole('combobox', { name: 'TO' }).press('Enter')
+  await expect(page.getByTestId('route-map')).toHaveAttribute('data-drawn', 'true')
   expect(await page.locator('canvas').count()).toBe(1)
-  await expect(page.getByRole('button',{name:/Focus stop 1:/})).toContainText('A VERY LONG TRUCKSTOP')
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true)
-  await page.screenshot({path:folder+'/reduced-motion-long-name.png',fullPage:true})
-  const resultAudit=await new AxeBuilder({page}).analyze()
+  await expect(page.getByRole('button', { name: /Focus stop 1:/ })).toContainText(
+    'A VERY LONG TRUCKSTOP',
+  )
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({ path: folder + '/reduced-motion-long-name.png', fullPage: true })
+  const resultAudit = await new AxeBuilder({ page }).analyze()
   expect(resultAudit.violations).toEqual([])
+})
+
+test('autocomplete keyboard, pointer, clear and mobile accessibility', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('/static/routefuel/')
+  const input = page.getByRole('combobox', { name: 'FROM' })
+  await input.fill('Dallas')
+  await expect(page.getByRole('option')).toHaveCount(2)
+  await input.press('ArrowUp')
+  await expect(page.getByRole('option').last()).toHaveAttribute('aria-selected', 'true')
+  await page.screenshot({ path: folder + '/autocomplete-mobile.png', fullPage: true })
+  const audit = await new AxeBuilder({ page }).analyze()
+  expect(audit.violations).toEqual([])
+  await input.press('Enter')
+  await expect(input).toHaveValue('Dallas Love Field, Dallas, TX')
+  await expect(input).toHaveAttribute('aria-expanded', 'false')
+  await page.getByRole('button', { name: 'Clear FROM' }).click()
+  await expect(input).toHaveValue('')
+  await input.fill('Dallas')
+  await expect(page.getByRole('option')).toHaveCount(2)
+  await input.press('Escape')
+  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await input.press('ArrowDown')
+  await expect(page.getByRole('option')).toHaveCount(2)
+  await page.getByRole('option').first().click()
+  await expect(input).toHaveValue('Dallas, TX')
 })
